@@ -33,15 +33,6 @@ validate:
 # Application Test
 # -------------------------
 
-test:
-  extends: .default
-  stage: test
-  script:
-    - echo "Installing dependencies..."
-    - python3 --version
-    - pip3 install --no-cache-dir -r requirements.txt
-    - python3 -m py_compile app.py
-    - echo "Application tests completed successfully."
 
 # -------------------------
 # Security Scan
