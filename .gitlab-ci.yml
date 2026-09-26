@@ -1,3 +1,4 @@
+```yaml
 stages:
   - validate
   - test
@@ -9,13 +10,18 @@ stages:
 variables:
   IMAGE_NAME: "$CI_REGISTRY_IMAGE"
   IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
-  DOCKER_TLS_CERTDIR: ""
+
+# All jobs in this pipeline run on the production runner
+.default:
+  tags:
+    - prod
 
 # -------------------------
 # Validate
 # -------------------------
 
 validate:
+  extends: .default
   stage: validate
   script:
     - echo "Validating project structure..."
@@ -29,12 +35,13 @@ validate:
 # -------------------------
 
 test:
+  extends: .default
   stage: test
   script:
-    - echo "Running application tests..."
-    - python --version
-    - pip install --no-cache-dir -r requirements.txt
-    - python -m py_compile app.py
+    - echo "Installing dependencies..."
+    - python3 --version
+    - pip3 install --no-cache-dir -r requirements.txt
+    - python3 -m py_compile app.py
     - echo "Application tests completed successfully."
 
 # -------------------------
@@ -42,19 +49,21 @@ test:
 # -------------------------
 
 trivy_scan:
+  extends: .default
   stage: security
   script:
-    - echo "Building temporary image for security scanning..."
-    - docker build -t "$IMAGE_NAME:$IMAGE_TAG" .
+    - echo "Building image for security scanning..."
+    - docker build --pull -t "$IMAGE_NAME:$IMAGE_TAG" .
     - echo "Running Trivy vulnerability scan..."
     - trivy image --severity HIGH,CRITICAL --exit-code 1 "$IMAGE_NAME:$IMAGE_TAG"
-  allow_failure: false
+    - echo "Trivy security scan completed successfully."
 
 # -------------------------
 # Docker Build
 # -------------------------
 
 docker_build:
+  extends: .default
   stage: build
   script:
     - echo "Building Docker image..."
@@ -67,22 +76,27 @@ docker_build:
 # -------------------------
 
 docker_push:
+  extends: .default
   stage: push
   script:
     - echo "Logging in to GitLab Container Registry..."
     - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
     - docker push "$IMAGE_NAME:$IMAGE_TAG"
     - docker push "$IMAGE_NAME:latest"
+    - echo "Docker image pushed successfully."
 
 # -------------------------
-# Deployment
+# Production Deployment
 # -------------------------
 
 deploy:
+  extends: .default
   stage: deploy
   script:
-    - echo "Deploying application..."
-    - docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin <<< "$CI_REGISTRY_PASSWORD"
+    - echo "Starting production deployment..."
+
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
+
     - docker pull "$IMAGE_NAME:$IMAGE_TAG"
 
     - docker rm -f webapp 2>/dev/null || true
@@ -98,7 +112,8 @@ deploy:
 
     - docker ps --filter "name=webapp"
 
-    - echo "Checking application health..."
-    - curl --fail http://localhost:8000/ || exit 1
+    - echo "Running application health check..."
+    - curl --fail http://localhost:8000/health
 
-    - echo "Deployment completed successfully."
+    - echo "Production deployment completed successfully."
+```
