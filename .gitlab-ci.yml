@@ -32,13 +32,6 @@ validate:
     - whoami
 
 # -------------------------
-# Application Test
-# -------------------------
-
-
-
-
-# -------------------------
 # Docker Build
 # -------------------------
 
@@ -77,6 +70,9 @@ docker_push:
     - sudo docker push "$IMAGE_NAME:$IMAGE_TAG"
     - sudo docker push "$IMAGE_NAME:latest"
     - echo "Docker image pushed successfully."
+  when: delayed
+  start_in: 1 minutes
+  allow_failure: false
 
 # -------------------------
 # Production Deployment
@@ -109,3 +105,4 @@ deploy:
     - sudo curl --fail http://localhost:8000/health
 
     - echo "Production deployment completed successfully."
+  when: manual
