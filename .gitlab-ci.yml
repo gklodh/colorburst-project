@@ -1,0 +1,10 @@
+stages:
+    - checkout
+    - build
+    - test
+    - push
+    - prod
+checkout_stage:
+    stage: checkout
+    script:
+        - ls -l
