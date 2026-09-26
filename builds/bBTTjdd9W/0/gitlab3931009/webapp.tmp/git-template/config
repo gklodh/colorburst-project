@@ -1,0 +1,10 @@
+[init]
+	defaultBranch = none
+[fetch]
+	recurseSubmodules = false
+[credential]
+	interactive = never
+[gc]
+	autoDetach = false
+[include]
+	path = /home/gklodh/webapp-project/builds/bBTTjdd9W/0/gitlab3931009/webapp.tmp/.gitlab-runner.ext.conf
