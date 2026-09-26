@@ -36,75 +36,76 @@ validate:
 # -------------------------
 
 
+
+
+# -------------------------
+# Docker Build
+# -------------------------
+
+docker_build:
+  extends: .default
+  stage: build
+  script:
+    - echo "Building Docker image..."
+    - sudo docker build --pull -t "$IMAGE_NAME:$IMAGE_TAG" .
+    - sudo docker tag "$IMAGE_NAME:$IMAGE_TAG" "$IMAGE_NAME:latest"
+    - sudo docker images "$IMAGE_NAME"
+
+
 # -------------------------
 # Security Scan
 # -------------------------
 
-# trivy_scan:
-#   extends: .default
-#   stage: security
-#   script:
-#     - echo "Building image for security scanning..."
-#     - docker build --pull -t "$IMAGE_NAME:$IMAGE_TAG" .
-#     - echo "Running Trivy vulnerability scan..."
-#     - trivy image --severity HIGH,CRITICAL --exit-code 1 "$IMAGE_NAME:$IMAGE_TAG"
-#     - echo "Trivy security scan completed successfully."
+trivy_scan:
+  extends: .default
+  stage: security
+  script:
+    - echo "Running Trivy vulnerability scan..."
+    - sudo trivy image --severity HIGH,CRITICAL --exit-code 1 "$IMAGE_NAME:$IMAGE_TAG"
+    - echo "Trivy security scan completed successfully."
 
-# # -------------------------
-# # Docker Build
-# # -------------------------
+# -------------------------
+# Push to GitLab Registry
+# -------------------------
 
-# docker_build:
-#   extends: .default
-#   stage: build
-#   script:
-#     - echo "Building Docker image..."
-#     - docker build --pull -t "$IMAGE_NAME:$IMAGE_TAG" .
-#     - docker tag "$IMAGE_NAME:$IMAGE_TAG" "$IMAGE_NAME:latest"
-#     - docker images "$IMAGE_NAME"
+docker_push:
+  extends: .default
+  stage: push
+  script:
+    - echo "Logging in to GitLab Container Registry..."
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
+    - sudo docker push "$IMAGE_NAME:$IMAGE_TAG"
+    - sudo docker push "$IMAGE_NAME:latest"
+    - echo "Docker image pushed successfully."
 
-# # -------------------------
-# # Push to GitLab Registry
-# # -------------------------
+# -------------------------
+# Production Deployment
+# -------------------------
 
-# docker_push:
-#   extends: .default
-#   stage: push
-#   script:
-#     - echo "Logging in to GitLab Container Registry..."
-#     - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
-#     - docker push "$IMAGE_NAME:$IMAGE_TAG"
-#     - docker push "$IMAGE_NAME:latest"
-#     - echo "Docker image pushed successfully."
+deploy:
+  extends: .default
+  stage: deploy
+  script:
+    - echo "Starting production deployment..."
 
-# # -------------------------
-# # Production Deployment
-# # -------------------------
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
 
-# deploy:
-#   extends: .default
-#   stage: deploy
-#   script:
-#     - echo "Starting production deployment..."
+    - sudo docker pull "$IMAGE_NAME:$IMAGE_TAG"
 
-#     - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
+    - sudo docker rm -f webapp 2>/dev/null || true
 
-#     - docker pull "$IMAGE_NAME:$IMAGE_TAG"
+    - sudo docker run -d \
+        --name webapp \
+        --restart unless-stopped \
+        -p 8000:8000 \
+        "$IMAGE_NAME:$IMAGE_TAG"
 
-#     - docker rm -f webapp 2>/dev/null || true
+    - echo "Waiting for application startup..."
+    - sleep 5
 
-#     - docker run -d \
-#         --name webapp \
-#         --restart unless-stopped \
-#         -p 8000:8000 \
-#         "$IMAGE_NAME:$IMAGE_TAG"
+    - sudo docker ps --filter "name=webapp"
 
-#     - echo "Waiting for application startup..."
-#     - sleep 5
+    - echo "Running application health check..."
+    - sudo curl --fail http://localhost:8000/health
 
-#     - docker ps --filter "name=webapp"
-
-#     - echo "Running application health check..."
-#     - curl --fail http://localhost:8000/health
-
-#     - echo "Production deployment completed successfully."
+    - echo "Production deployment completed successfully."
