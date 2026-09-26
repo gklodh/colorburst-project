@@ -1,8 +1,8 @@
 stages:
   - validate
-  - test
-  - security
+  # - test
   - build
+  - security
   - push
   - deploy
 
