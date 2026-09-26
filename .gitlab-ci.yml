@@ -83,9 +83,7 @@ deploy:
   stage: deploy
   script:
     - echo "Starting production deployment..."
-
     - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
-
     - docker pull "$IMAGE_NAME:$IMAGE_TAG"
 
     - docker rm -f webapp 2>/dev/null || true
