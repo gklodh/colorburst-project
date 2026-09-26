@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Home · ColorBurst 🎨{% endblock %}
+{% block content %}
+
+<section class="hero">
+    <h1>Design Beyond Ordinary</h1>
+    <p>A vibrant, glassmorphic webapp built with Python &amp; Flask. Floating orbs,
+       rainbow text, animated counters — pure visual joy.</p>
+    <a class="btn" href="{{ url_for('features') }}">Explore Features ✨</a>
+    <a class="btn btn-alt" href="{{ url_for('contact') }}">Say Hello 👋</a>
+</section>
+
+<section class="stats">
+    <div class="stat"><div class="num" data-count="12500" data-suffix="+">0</div><div class="label">Happy Users</div></div>
+    <div class="stat"><div class="num" data-count="340" data-suffix="+">0</div><div class="label">Projects Shipped</div></div>
+    <div class="stat"><div class="num" data-count="99" data-suffix="%">0</div><div class="label">Uptime</div></div>
+    <div class="stat"><div class="num" data-count="24" data-suffix="/7">0</div><div class="label">Support</div></div>
+</section>
+
+<section class="cards">
+    <div class="card reveal">
+        <div class="icon i1">🚀</div>
+        <h3>Fast &amp; Light</h3>
+        <p>Minimal dependencies. Just Flask and your browser. Runs anywhere Python runs.</p>
+    </div>
+    <div class="card reveal">
+        <div class="icon i2">🎨</div>
+        <h3>Bold Colors</h3>
+        <p>Animated gradients, glowing orbs, and a full glassmorphism design system.</p>
+    </div>
+    <div class="card reveal">
+        <div class="icon i3">📱</div>
+        <h3>Fully Responsive</h3>
+        <p>Looks stunning on phones, tablets, and widescreen desktops alike.</p>
+    </div>
+    <div class="card reveal">
+        <div class="icon i4">⚡</div>
+        <h3>Deployment Ready</h3>
+        <p>Ships with a Procfile and gunicorn config for Render, Railway, or Heroku.</p>
+    </div>
+</section>
+
+{% endblock %}

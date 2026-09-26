@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}About · ColorBurst 🎨{% endblock %}
+{% block content %}
+
+<section class="page-header">
+    <h1>About ColorBurst</h1>
+    <p>A small project proving that server-side Python can look absolutely stunning.</p>
+</section>
+
+<section class="cards">
+    <div class="card reveal">
+        <div class="icon i1">🐍</div>
+        <h3>Powered by Flask</h3>
+        <p>Lightweight, battle-tested, and easy to extend with databases or APIs.</p>
+    </div>
+    <div class="card reveal">
+        <div class="icon i2">💅</div>
+        <h3>Zero Build Step</h3>
+        <p>Pure CSS animations — no npm, no bundlers, no compile waiting.</p>
+    </div>
+    <div class="card reveal">
+        <div class="icon i3">🌍</div>
+        <h3>Deploy Anywhere</h3>
+        <p>Runs on any host that speaks Python: VPS, PaaS, containers, you name it.</p>
+    </div>
+    <div class="card reveal">
+        <div class="icon i4">🔓</div>
+        <h3>Yours Forever</h3>
+        <p>No licenses, no lock-in. Fork it, theme it, ship it.</p>
+    </div>
+</section>
+
+<section class="stats">
+    <div class="stat"><div class="num" data-count="5" data-suffix="">0</div><div class="label">Pages</div></div>
+    <div class="stat"><div class="num" data-count="3" data-suffix="">0</div><div class="label">Dependencies</div></div>
+    <div class="stat"><div class="num" data-count="400" data-suffix="+">0</div><div class="label">Lines of CSS</div></div>
+    <div class="stat"><div class="num" data-count="100" data-suffix="%">0</div><div class="label">Free</div></div>
+</section>
+
+{% endblock %}

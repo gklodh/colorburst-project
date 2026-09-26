@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Contact · ColorBurst 🎨{% endblock %}
+{% block content %}
+
+<section class="page-header">
+    <h1>Get in Touch</h1>
+    <p>Drop a message — it appears on the wall below instantly.</p>
+</section>
+
+<div class="form-wrap">
+    <form method="POST" action="{{ url_for('contact') }}">
+        <label for="name">Your Name</label>
+        <input type="text" id="name" name="name" placeholder="Ada Lovelace" required>
+
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="ada@example.com" required>
+
+        <label for="message">Message</label>
+        <textarea id="message" name="message" placeholder="Tell us something colorful…" required></textarea>
+
+        <button class="btn" type="submit">Send Message 🚀</button>
+    </form>
+</div>
+
+{% if messages %}
+<div class="msg-wall">
+    <h3 style="margin-bottom:16px;">📮 Message Wall ({{ messages|length }})</h3>
+    {% for m in messages|reverse %}
+    <div class="msg">
+        <div class="who">{{ m.name }} · {{ m.email }}</div>
+        <div class="body">{{ m.message }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
