@@ -40,9 +40,9 @@ docker_build:
   stage: build
   script:
     - echo "Building Docker image..."
-    - sudo docker build --pull -t "$IMAGE_NAME:$IMAGE_TAG" .
-    - sudo docker tag "$IMAGE_NAME:$IMAGE_TAG" "$IMAGE_NAME:latest"
-    - sudo docker images "$IMAGE_NAME"
+    - docker build --pull -t "$IMAGE_NAME:$IMAGE_TAG" .
+    - docker tag "$IMAGE_NAME:$IMAGE_TAG" "$IMAGE_NAME:latest"
+    - docker images "$IMAGE_NAME"
 
 
 # -------------------------
@@ -54,7 +54,7 @@ trivy_scan:
   stage: security
   script:
     - echo "Running Trivy vulnerability scan..."
-    - sudo trivy image --severity HIGH,CRITICAL --exit-code 1 "$IMAGE_NAME:$IMAGE_TAG"
+    - trivy image --severity HIGH,CRITICAL --exit-code 1 "$IMAGE_NAME:$IMAGE_TAG"
     - echo "Trivy security scan completed successfully."
 
 # -------------------------
@@ -67,8 +67,8 @@ docker_push:
   script:
     - echo "Logging in to GitLab Container Registry..."
     - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
-    - sudo docker push "$IMAGE_NAME:$IMAGE_TAG"
-    - sudo docker push "$IMAGE_NAME:latest"
+    - docker push "$IMAGE_NAME:$IMAGE_TAG"
+    - docker push "$IMAGE_NAME:latest"
     - echo "Docker image pushed successfully."
   when: delayed
   start_in: 1 minutes
@@ -86,11 +86,11 @@ deploy:
 
     - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
 
-    - sudo docker pull "$IMAGE_NAME:$IMAGE_TAG"
+    - docker pull "$IMAGE_NAME:$IMAGE_TAG"
 
-    - sudo docker rm -f webapp 2>/dev/null || true
+    - docker rm -f webapp 2>/dev/null || true
 
-    - sudo docker run -d \
+    - docker run -d \
         --name webapp \
         --restart unless-stopped \
         -p 8000:8000 \
@@ -99,10 +99,10 @@ deploy:
     - echo "Waiting for application startup..."
     - sleep 5
 
-    - sudo docker ps --filter "name=webapp"
+    - docker ps --filter "name=webapp"
 
     - echo "Running application health check..."
-    - sudo curl --fail http://localhost:8000/health
+    - curl --fail http://localhost:8000/health
 
     - echo "Production deployment completed successfully."
   when: manual
