@@ -1,10 +1,104 @@
 stages:
-    - checkout
-    - build
-    - test
-    - push
-    - prod
-checkout_stage:
-    stage: checkout
-    script:
-        - ls -l
+  - validate
+  - test
+  - security
+  - build
+  - push
+  - deploy
+
+variables:
+  IMAGE_NAME: "$CI_REGISTRY_IMAGE"
+  IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
+  DOCKER_TLS_CERTDIR: ""
+
+# -------------------------
+# Validate
+# -------------------------
+
+validate:
+  stage: validate
+  script:
+    - echo "Validating project structure..."
+    - test -f app.py
+    - test -f requirements.txt
+    - test -f Dockerfile
+    - echo "Project validation completed successfully."
+
+# -------------------------
+# Application Test
+# -------------------------
+
+test:
+  stage: test
+  script:
+    - echo "Running application tests..."
+    - python --version
+    - pip install --no-cache-dir -r requirements.txt
+    - python -m py_compile app.py
+    - echo "Application tests completed successfully."
+
+# -------------------------
+# Security Scan
+# -------------------------
+
+trivy_scan:
+  stage: security
+  script:
+    - echo "Building temporary image for security scanning..."
+    - docker build -t "$IMAGE_NAME:$IMAGE_TAG" .
+    - echo "Running Trivy vulnerability scan..."
+    - trivy image --severity HIGH,CRITICAL --exit-code 1 "$IMAGE_NAME:$IMAGE_TAG"
+  allow_failure: false
+
+# -------------------------
+# Docker Build
+# -------------------------
+
+docker_build:
+  stage: build
+  script:
+    - echo "Building Docker image..."
+    - docker build --pull -t "$IMAGE_NAME:$IMAGE_TAG" .
+    - docker tag "$IMAGE_NAME:$IMAGE_TAG" "$IMAGE_NAME:latest"
+    - docker images "$IMAGE_NAME"
+
+# -------------------------
+# Push to GitLab Registry
+# -------------------------
+
+docker_push:
+  stage: push
+  script:
+    - echo "Logging in to GitLab Container Registry..."
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
+    - docker push "$IMAGE_NAME:$IMAGE_TAG"
+    - docker push "$IMAGE_NAME:latest"
+
+# -------------------------
+# Deployment
+# -------------------------
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying application..."
+    - docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin <<< "$CI_REGISTRY_PASSWORD"
+    - docker pull "$IMAGE_NAME:$IMAGE_TAG"
+
+    - docker rm -f webapp 2>/dev/null || true
+
+    - docker run -d \
+        --name webapp \
+        --restart unless-stopped \
+        -p 8000:8000 \
+        "$IMAGE_NAME:$IMAGE_TAG"
+
+    - echo "Waiting for application startup..."
+    - sleep 5
+
+    - docker ps --filter "name=webapp"
+
+    - echo "Checking application health..."
+    - curl --fail http://localhost:8000/ || exit 1
+
+    - echo "Deployment completed successfully."
