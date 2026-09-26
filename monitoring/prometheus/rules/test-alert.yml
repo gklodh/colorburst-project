@@ -1,0 +1,84 @@
+groups:
+
+  - name: server-alerts
+    rules:
+
+      # Server Down
+      - alert: ServerDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Server is down"
+          description: "Target {{ $labels.instance }} has been down for more than 1 minute."
+
+      # High CPU
+      - alert: CPUHigh
+        expr: 100 * (1 - avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage on {{ $labels.instance }} has been above 80% for 5 minutes."
+
+      # High Memory
+      - alert: MemoryHigh
+        expr: 100 * (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage on {{ $labels.instance }} has been above 80% for 5 minutes."
+
+      # Low Disk Space
+      - alert: DiskSpaceLow
+        expr: 100 * (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}) < 20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space"
+          description: "Available disk space on {{ $labels.instance }} filesystem {{ $labels.mountpoint }} is below 20%."
+
+      # Application Down
+      - alert: ApplicationDown
+        expr: up{job=~"app|docker"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Application target is down"
+          description: "Application target {{ $labels.instance }} is unreachable."
+
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(app_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(app_requests_total[5m]))
+          ) * 100 > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High application error rate"
+          description: "Application error rate is above 5% for 5 minutes."
+
+      # High Request Latency
+      - alert: HighRequestLatency
+        expr: |
+          (
+            sum(rate(app_request_duration_seconds_sum[5m]))
+            /
+            sum(rate(app_request_duration_seconds_count[5m]))
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High application request latency"
+          description: "Average application request latency is above 1 second for 5 minutes."

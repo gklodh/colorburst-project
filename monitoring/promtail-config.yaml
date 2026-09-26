@@ -1,0 +1,24 @@
+server:
+  http_listen_port: 9080
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://10.2.2.58:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: docker
+          __path__: /var/lib/docker/containers/*/*-json.log
+  - job_name: webapp 
+    static_configs:
+      - targets:
+        - 10.2.2.58:8000
+        labels:
+          job: webapp
+          __path__: /var/lib/docker/containers/*/*-json.log

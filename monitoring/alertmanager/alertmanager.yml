@@ -1,0 +1,38 @@
+global:
+  resolve_timeout: 5m
+
+  smtp_smarthost: "smtp.gmail.com:587"
+  smtp_from: "gklodh.ispl@gmail.com"
+  smtp_auth_username: "gklodh.ispl@gmail.com"
+  smtp_auth_password: "ishr hfzg kkae kspi"
+  smtp_require_tls: true
+route:
+  receiver: "default"
+
+  routes:
+    - matchers:
+        - severity="critical"
+      receiver: "critical"
+
+    - matchers:
+        - severity="warning"
+      receiver: "warning"
+
+receivers:
+
+  - name: "default"
+
+  - name: "critical"
+    email_configs:
+      - to: "debaratiksh@gmail.com,gklodh@gmail.com"
+        send_resolved: true
+  - name: "warning"
+    email_configs:
+      - to: "debaratiksh@gmail.com,gklodh@gmail.com"
+        send_resolved: true
+
+inhibit_rules:
+  - source_matchers:
+      - alertname="ServerDown"
+    target_matchers:
+      - severity="warning"
