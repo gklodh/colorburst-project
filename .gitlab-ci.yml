@@ -88,11 +88,7 @@ deploy:
 
     - docker rm -f webapp 2>/dev/null || true
 
-    - docker run -d \
-        --name webapp \
-        --restart unless-stopped \
-        -p 8000:8000 \
-        "$IMAGE_NAME:$IMAGE_TAG"
+    - docker run -d --name webapp --restart unless-stopped -p 8000:8000 "$IMAGE_NAME:$IMAGE_TAG"
 
     - echo "Waiting for application startup..."
     - sleep 5
