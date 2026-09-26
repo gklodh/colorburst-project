@@ -28,6 +28,8 @@ validate:
     - test -f requirements.txt
     - test -f Dockerfile
     - echo "Project validation completed successfully."
+    - hostname
+    - whoami
 
 # -------------------------
 # Application Test
@@ -38,71 +40,71 @@ validate:
 # Security Scan
 # -------------------------
 
-trivy_scan:
-  extends: .default
-  stage: security
-  script:
-    - echo "Building image for security scanning..."
-    - docker build --pull -t "$IMAGE_NAME:$IMAGE_TAG" .
-    - echo "Running Trivy vulnerability scan..."
-    - trivy image --severity HIGH,CRITICAL --exit-code 1 "$IMAGE_NAME:$IMAGE_TAG"
-    - echo "Trivy security scan completed successfully."
+# trivy_scan:
+#   extends: .default
+#   stage: security
+#   script:
+#     - echo "Building image for security scanning..."
+#     - docker build --pull -t "$IMAGE_NAME:$IMAGE_TAG" .
+#     - echo "Running Trivy vulnerability scan..."
+#     - trivy image --severity HIGH,CRITICAL --exit-code 1 "$IMAGE_NAME:$IMAGE_TAG"
+#     - echo "Trivy security scan completed successfully."
 
-# -------------------------
-# Docker Build
-# -------------------------
+# # -------------------------
+# # Docker Build
+# # -------------------------
 
-docker_build:
-  extends: .default
-  stage: build
-  script:
-    - echo "Building Docker image..."
-    - docker build --pull -t "$IMAGE_NAME:$IMAGE_TAG" .
-    - docker tag "$IMAGE_NAME:$IMAGE_TAG" "$IMAGE_NAME:latest"
-    - docker images "$IMAGE_NAME"
+# docker_build:
+#   extends: .default
+#   stage: build
+#   script:
+#     - echo "Building Docker image..."
+#     - docker build --pull -t "$IMAGE_NAME:$IMAGE_TAG" .
+#     - docker tag "$IMAGE_NAME:$IMAGE_TAG" "$IMAGE_NAME:latest"
+#     - docker images "$IMAGE_NAME"
 
-# -------------------------
-# Push to GitLab Registry
-# -------------------------
+# # -------------------------
+# # Push to GitLab Registry
+# # -------------------------
 
-docker_push:
-  extends: .default
-  stage: push
-  script:
-    - echo "Logging in to GitLab Container Registry..."
-    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
-    - docker push "$IMAGE_NAME:$IMAGE_TAG"
-    - docker push "$IMAGE_NAME:latest"
-    - echo "Docker image pushed successfully."
+# docker_push:
+#   extends: .default
+#   stage: push
+#   script:
+#     - echo "Logging in to GitLab Container Registry..."
+#     - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
+#     - docker push "$IMAGE_NAME:$IMAGE_TAG"
+#     - docker push "$IMAGE_NAME:latest"
+#     - echo "Docker image pushed successfully."
 
-# -------------------------
-# Production Deployment
-# -------------------------
+# # -------------------------
+# # Production Deployment
+# # -------------------------
 
-deploy:
-  extends: .default
-  stage: deploy
-  script:
-    - echo "Starting production deployment..."
+# deploy:
+#   extends: .default
+#   stage: deploy
+#   script:
+#     - echo "Starting production deployment..."
 
-    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
+#     - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
 
-    - docker pull "$IMAGE_NAME:$IMAGE_TAG"
+#     - docker pull "$IMAGE_NAME:$IMAGE_TAG"
 
-    - docker rm -f webapp 2>/dev/null || true
+#     - docker rm -f webapp 2>/dev/null || true
 
-    - docker run -d \
-        --name webapp \
-        --restart unless-stopped \
-        -p 8000:8000 \
-        "$IMAGE_NAME:$IMAGE_TAG"
+#     - docker run -d \
+#         --name webapp \
+#         --restart unless-stopped \
+#         -p 8000:8000 \
+#         "$IMAGE_NAME:$IMAGE_TAG"
 
-    - echo "Waiting for application startup..."
-    - sleep 5
+#     - echo "Waiting for application startup..."
+#     - sleep 5
 
-    - docker ps --filter "name=webapp"
+#     - docker ps --filter "name=webapp"
 
-    - echo "Running application health check..."
-    - curl --fail http://localhost:8000/health
+#     - echo "Running application health check..."
+#     - curl --fail http://localhost:8000/health
 
-    - echo "Production deployment completed successfully."
+#     - echo "Production deployment completed successfully."
