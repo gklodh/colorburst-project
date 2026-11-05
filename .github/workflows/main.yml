@@ -1,22 +1,18 @@
-name: first pipeline
+name: second pipeline
 
 on:
   push:
     branches:
       - main
       - master
+  workflow_dispatch:
 
 jobs:
   builds:
-    runs-on: ubuntu-22.04
+    runs-on: windows-latest
     steps:
-      - run: echo "hello build"
+      - run: echo "hello world"
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - run: echo "hello test"
-  deploy:
-    runs-on: ubuntu-slim
-    needs: [builds, test]
-    steps:
-      - run: echo "deploy"
+      - run: echo "hello world"
