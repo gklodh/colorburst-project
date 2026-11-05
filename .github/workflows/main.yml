@@ -1,0 +1,22 @@
+name: first pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  builds:
+    runs-on: ubuntu-22.04
+    steps:
+      - run: echo "hello build"
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "hello test"
+  deploy:
+    runs-on: ubuntu-slim
+    needs: [builds, test]
+    steps:
+      - run: echo "deploy"
